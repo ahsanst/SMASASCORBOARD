@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmaSa Multi-Sport Scoreboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --smasa-maroon: #800000;
+            --smasa-gold: #FFD700;
+        }
+        body {
+            background-color: #050505;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .font-digital { font-family: 'Orbitron', sans-serif; }
+        .score-box {
+            background: linear-gradient(145deg, #151515, #0a0a0a);
+            border: 1px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+        .glow-maroon { box-shadow: 0 0 20px rgba(128, 0, 0, 0.4); border-color: #400; }
+        .glow-gold { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); border-color: #440; }
+        .btn-control { transition: all 0.15s; }
+        .btn-control:active { transform: scale(0.9); }
+        .sport-active {
+            background-color: var(--smasa-maroon);
+            color: white;
+            border-color: var(--smasa-gold);
+        }
+        @keyframes blink { 50% { opacity: 0.2; } }
+        .critical { color: #ff3333; animation: blink 0.8s infinite; }
+        
+        .timer-input {
+            background: #111;
+            border: 2px solid var(--smasa-maroon);
+            color: #facd15;
+            width: 150px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            border-radius: 8px;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="w-full max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4 mb-8">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center p-1">
+                <div class="text-[8px] text-black font-bold text-center uppercase text-center leading-tight">SMASA<br>MAGETAN</div>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tighter italic">SMASA SCOREBOARD <span id="sport-label" class="text-yellow-500 uppercase">BASKETBALL</span></h1>
+                <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest">Official Competition System</p>
+            </div>
+        </div>
+
+        <div class="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 overflow-x-auto">
+            <button onclick="setSport('basket')" id="btn-basket" class="sport-active px-4 py-2 rounded-md text-xs font-bold uppercase btn-control whitespace-nowrap">Basket</button>
+            <button onclick="setSport('futsal')" id="btn-futsal" class="px-4 py-2 rounded-md text-xs font-bold uppercase btn-control whitespace-nowrap">Futsal</button>
+            <button onclick="setSport('voli')" id="btn-voli" class="px-4 py-2 rounded-md text-xs font-bold uppercase btn-control whitespace-nowrap">Voli</button>
+            <button onclick="setSport('softball')" id="btn-softball" class="px-4 py-2 rounded-md text-xs font-bold uppercase btn-control whitespace-nowrap">Softball</button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- HOME TEAM -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            <input type="text" value="SMASA MAGETAN" class="bg-transparent text-center text-4xl font-black text-white border-none focus:ring-0 uppercase tracking-tight cursor-text">
+            <div class="score-box rounded-3xl p-8 flex flex-col items-center glow-maroon relative overflow-hidden">
+                <div class="absolute top-4 left-6 text-zinc-600 font-bold text-xs uppercase tracking-widest">Home</div>
+                <div id="score-home" class="font-digital text-[10rem] leading-none text-white my-4">00</div>
+                
+                <div class="grid grid-cols-3 gap-2 w-full mt-4">
+                    <button onclick="changeScore('home', 1)" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+1</button>
+                    <button onclick="changeScore('home', 2)" id="btn-h2" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+2</button>
+                    <button onclick="changeScore('home', 3)" id="btn-h3" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+3</button>
+                </div>
+                <button onclick="changeScore('home', -1)" class="w-full mt-2 bg-red-950/20 text-red-500 py-2 rounded-lg text-xs font-bold uppercase tracking-widest btn-control">Kurangi Skor</button>
+
+                <div class="mt-8 w-full border-t border-zinc-800 pt-6">
+                    <div id="foul-container-home" class="flex flex-col items-center">
+                        <span id="foul-label-home" class="text-zinc-500 font-bold text-[10px] uppercase mb-3 tracking-widest">Team Fouls</span>
+                        <div class="flex gap-2">
+                            <div id="f-h-1" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-h-2" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-h-3" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-h-4" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-h-5" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                        </div>
+                        <div class="flex gap-4 mt-4">
+                            <button onclick="addFoul('home')" class="text-[10px] bg-zinc-800 px-4 py-1 rounded-full btn-control">+ Foul / Set</button>
+                            <button onclick="resetFoul('home')" class="text-[10px] bg-zinc-800 px-4 py-1 rounded-full btn-control">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER PANEL -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            <div id="timer-section" class="score-box rounded-3xl p-6 flex flex-col items-center justify-center relative">
+                <span id="timer-label" class="text-zinc-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Match Time</span>
+                
+                <div id="timer-container" class="relative group cursor-pointer" onclick="editTimer()">
+                    <div id="timer-display" class="font-digital text-8xl text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.3)]">10:00</div>
+                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-zinc-500 font-bold uppercase">Klik untuk Ubah</div>
+                </div>
+                
+                <div id="edit-mode" class="hidden my-4">
+                    <input type="text" id="manual-timer-input" class="timer-input text-5xl p-2" placeholder="MM:SS">
+                    <div class="flex gap-2 mt-2 justify-center">
+                        <button onclick="saveManualTimer()" class="bg-green-700 px-3 py-1 rounded text-xs font-bold">OK</button>
+                        <button onclick="cancelEdit()" class="bg-zinc-700 px-3 py-1 rounded text-xs font-bold">Batal</button>
+                    </div>
+                </div>
+
+                <div id="timer-controls" class="flex gap-3 w-full mt-8">
+                    <button id="btn-start" onclick="toggleTimer()" class="flex-1 bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-black uppercase text-sm shadow-lg shadow-green-900/20 btn-control">Mulai</button>
+                    <button onclick="resetTimer()" class="px-6 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-bold uppercase text-xs btn-control">Reset</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="score-box rounded-2xl p-4 flex flex-col items-center">
+                    <span id="period-label" class="text-zinc-500 font-bold text-[10px] uppercase mb-2">Period</span>
+                    <div id="period-display" class="font-digital text-5xl">1</div>
+                    <button onclick="nextPeriod()" class="mt-3 text-[10px] bg-zinc-800 px-4 py-1 rounded-full font-bold uppercase btn-control">Next</button>
+                </div>
+                <div id="shotclock-container" class="score-box rounded-2xl p-4 flex flex-col items-center">
+                    <span class="text-zinc-500 font-bold text-[10px] uppercase mb-2">Shot Clock</span>
+                    <div id="shot-clock" class="font-digital text-5xl text-red-500">24</div>
+                    <button onclick="resetShotClock()" class="mt-3 text-[10px] bg-zinc-800 px-4 py-1 rounded-full font-bold uppercase btn-control">Reset (R)</button>
+                </div>
+            </div>
+
+            <div class="score-box rounded-2xl p-4">
+                <span class="text-zinc-500 font-bold text-[10px] uppercase block text-center mb-3 tracking-widest text-zinc-400">Audio Control Engine</span>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="playSound('buzzer')" class="bg-red-700/30 text-red-400 border border-red-900/50 py-2 rounded-lg text-[10px] font-bold uppercase btn-control">Buzzer</button>
+                    <button onclick="playSound('whistle')" class="bg-blue-700/30 text-blue-400 border border-blue-900/50 py-2 rounded-lg text-[10px] font-bold uppercase btn-control">Whistle</button>
+                    <button onclick="playSound('score')" class="bg-green-700/30 text-green-400 border border-green-900/50 py-2 rounded-lg text-[10px] font-bold uppercase btn-control">Cheer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AWAY TEAM -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            <input type="text" value="OPPONENT" class="bg-transparent text-center text-4xl font-black text-white border-none focus:ring-0 uppercase tracking-tight cursor-text">
+            <div class="score-box rounded-3xl p-8 flex flex-col items-center glow-gold relative overflow-hidden">
+                <div class="absolute top-4 right-6 text-zinc-600 font-bold text-xs text-right uppercase tracking-widest">Away</div>
+                <div id="score-away" class="font-digital text-[10rem] leading-none text-white my-4">00</div>
+                
+                <div class="grid grid-cols-3 gap-2 w-full mt-4">
+                    <button onclick="changeScore('away', 1)" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+1</button>
+                    <button onclick="changeScore('away', 2)" id="btn-a2" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+2</button>
+                    <button onclick="changeScore('away', 3)" id="btn-a3" class="bg-zinc-800 hover:bg-zinc-700 py-4 rounded-xl font-bold text-xl btn-control">+3</button>
+                </div>
+                <button onclick="changeScore('away', -1)" class="w-full mt-2 bg-red-950/20 text-red-500 py-2 rounded-lg text-xs font-bold uppercase tracking-widest btn-control">Kurangi Skor</button>
+
+                <div class="mt-8 w-full border-t border-zinc-800 pt-6">
+                    <div id="foul-container-away" class="flex flex-col items-center">
+                        <span id="foul-label-away" class="text-zinc-500 font-bold text-[10px] uppercase mb-3 tracking-widest">Team Fouls</span>
+                        <div class="flex gap-2">
+                            <div id="f-a-1" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-a-2" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-a-3" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-a-4" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                            <div id="f-a-5" class="w-6 h-6 rounded-full border-2 border-zinc-800 bg-zinc-900"></div>
+                        </div>
+                        <div class="flex gap-4 mt-4">
+                            <button onclick="addFoul('away')" class="text-[10px] bg-zinc-800 px-4 py-1 rounded-full btn-control">+ Foul / Set</button>
+                            <button onclick="resetFoul('away')" class="text-[10px] bg-zinc-800 px-4 py-1 rounded-full btn-control">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto w-full max-w-7xl mx-auto flex justify-between items-center py-6 border-t border-zinc-900 text-zinc-600">
+        <div class="text-[10px] font-bold uppercase tracking-widest">
+            [SPACE] Start/Pause | [R] Reset ShotClock | [ENTER] OK Edit Time
+        </div>
+        <div class="text-xs font-bold uppercase tracking-widest italic">
+            SmaSa Sports Engine - Pro International v3.2
+        </div>
+    </footer>
+
+    <script>
+        let currentSport = 'basket';
+        let state = {
+            homeScore: 0, awayScore: 0,
+            homeFouls: 0, awayFouls: 0,
+            period: 1,
+            time: 600, shotClock: 24,
+            isRunning: false
+        };
+
+        const config = {
+            basket: { time: 600, shot: 24, hasShotClock: true, periodName: 'Period', foulName: 'Team Fouls' },
+            futsal: { time: 1200, shot: 0, hasShotClock: false, periodName: 'Half', foulName: 'Team Fouls' },
+            voli: { time: 0, shot: 0, hasShotClock: false, periodName: 'Match', foulName: 'Sets Won' },
+            softball: { time: 0, shot: 0, hasShotClock: false, periodName: 'Inning', foulName: 'Outs' }
+        };
+
+        let timerInterval = null;
+
+        function updateDisplay() {
+            document.getElementById('score-home').innerText = state.homeScore.toString().padStart(2, '0');
+            document.getElementById('score-away').innerText = state.awayScore.toString().padStart(2, '0');
+            document.getElementById('period-display').innerText = state.period;
+            
+            const m = Math.floor(state.time / 60);
+            const s = state.time % 60;
+            const tDisplay = document.getElementById('timer-display');
+            
+            tDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if(state.time <= 10 && state.time > 0 && (currentSport === 'basket' || currentSport === 'futsal')) {
+                tDisplay.classList.add('critical');
+            } else {
+                tDisplay.classList.remove('critical');
+            }
+
+            document.getElementById('shot-clock').innerText = state.shotClock.toString().padStart(2, '0');
+
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`f-h-${i}`).style.backgroundColor = (i <= state.homeFouls) ? '#ff3333' : '#111';
+                document.getElementById(`f-a-${i}`).style.backgroundColor = (i <= state.awayFouls) ? '#ff3333' : '#111';
+            }
+        }
+
+        function setSport(type) {
+            currentSport = type;
+            state.time = config[type].time;
+            state.shotClock = config[type].shot;
+            state.homeScore = 0; state.awayScore = 0;
+            state.homeFouls = 0; state.awayFouls = 0;
+            state.period = 1;
+            
+            document.querySelectorAll('[id^="btn-"]').forEach(el => el.classList.remove('sport-active'));
+            document.getElementById(`btn-${type}`).classList.add('sport-active');
+            document.getElementById('sport-label').innerText = type;
+            document.getElementById('period-label').innerText = config[type].periodName;
+            document.getElementById('foul-label-home').innerText = config[type].foulName;
+            document.getElementById('foul-label-away').innerText = config[type].foulName;
+            
+            document.getElementById('shotclock-container').style.display = config[type].hasShotClock ? 'flex' : 'none';
+            
+            const isPointSport = (type === 'voli' || type === 'softball');
+            document.getElementById('btn-h2').style.display = isPointSport ? 'none' : 'block';
+            document.getElementById('btn-h3').style.display = isPointSport ? 'none' : 'block';
+            document.getElementById('btn-a2').style.display = isPointSport ? 'none' : 'block';
+            document.getElementById('btn-a3').style.display = isPointSport ? 'none' : 'block';
+
+            if(state.isRunning) toggleTimer();
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-start');
+            if(state.isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "Mulai";
+                btn.classList.replace('bg-orange-600', 'bg-green-600');
+            } else {
+                timerInterval = setInterval(() => {
+                    const isCountUp = (currentSport === 'voli' || currentSport === 'softball');
+                    
+                    if(isCountUp) {
+                        state.time++;
+                    } else {
+                        if(state.time > 0) {
+                            state.time--;
+                            if(config[currentSport].hasShotClock && state.shotClock > 0) {
+                                state.shotClock--;
+                                if(state.shotClock === 0) playSound('buzzer');
+                            }
+                        } else {
+                            // TIMER SELESAI
+                            clearInterval(timerInterval);
+                            state.isRunning = false;
+                            triggerFinalBuzzer(); // Memicu sirine panjang
+                            btn.innerText = "Mulai";
+                            btn.classList.replace('bg-orange-600', 'bg-green-600');
+                        }
+                    }
+                    updateDisplay();
+                }, 1000);
+                btn.innerText = "Jeda";
+                btn.classList.replace('bg-green-600', 'bg-orange-600');
+            }
+            state.isRunning = !state.isRunning;
+        }
+
+        function changeScore(team, val) {
+            if(team === 'home') state.homeScore = Math.max(0, state.homeScore + val);
+            else state.awayScore = Math.max(0, state.awayScore + val);
+            
+            if (val > 0) playSound('score');
+            updateDisplay();
+        }
+
+        function addFoul(team) {
+            if(team === 'home') state.homeFouls = Math.min(5, state.homeFouls + 1);
+            else state.awayFouls = Math.min(5, state.awayFouls + 1);
+            
+            playSound('whistle');
+            updateDisplay();
+        }
+
+        function resetFoul(team) {
+            if(team === 'home') state.homeFouls = 0;
+            else state.awayFouls = 0;
+            updateDisplay();
+        }
+
+        function nextPeriod() {
+            state.period++;
+            playSound('period');
+            updateDisplay();
+        }
+
+        function resetTimer() {
+            state.time = config[currentSport].time;
+            state.shotClock = config[currentSport].shot;
+            updateDisplay();
+        }
+
+        function resetShotClock() {
+            state.shotClock = config[currentSport].shot;
+            updateDisplay();
+        }
+
+        // --- Sound Engine Logic ---
+
+        function triggerFinalBuzzer() {
+            // Suara Sirine Stadium Panjang (3.5 Detik)
+            playSound('buzzer_long');
+        }
+
+        function playSound(type) {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const masterGain = ctx.createGain();
+            masterGain.connect(ctx.destination);
+
+            if(type === 'buzzer' || type === 'buzzer_long') {
+                const duration = type === 'buzzer_long' ? 3.5 : 1.5;
+                const frequencies = [146.8, 155.6, 174.6, 220.0, 98.0]; // Low heavy tones
+                
+                frequencies.forEach((f, i) => {
+                    const osc = ctx.createOscillator();
+                    osc.type = i % 2 === 0 ? 'sawtooth' : 'square';
+                    osc.frequency.setValueAtTime(f, ctx.currentTime);
+                    
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(0, ctx.currentTime);
+                    g.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.1);
+                    
+                    // Efek sustain panjang untuk sirine final
+                    if(type === 'buzzer_long') {
+                        g.gain.setValueAtTime(0.25, ctx.currentTime + duration - 0.5);
+                    }
+                    
+                    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+                    
+                    osc.connect(g);
+                    g.connect(masterGain);
+                    osc.start(); 
+                    osc.stop(ctx.currentTime + duration);
+                });
+            } 
+            else if(type === 'period') {
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.2);
+                masterGain.gain.setValueAtTime(0.3, ctx.currentTime);
+                masterGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.connect(masterGain);
+                osc.start(); osc.stop(ctx.currentTime + 0.5);
+            }
+            else if(type === 'whistle') {
+                [2800, 2850].forEach(f => {
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, ctx.currentTime);
+                    const mod = ctx.createOscillator();
+                    mod.frequency.value = 50;
+                    const modGain = ctx.createGain();
+                    modGain.gain.value = 40;
+                    mod.connect(modGain);
+                    modGain.connect(osc.frequency);
+                    mod.start();
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(0, ctx.currentTime);
+                    g.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
+                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
+                    osc.connect(g);
+                    g.connect(masterGain);
+                    osc.start(); osc.stop(ctx.currentTime + 0.35);
+                });
+            } 
+            else if(type === 'score') {
+                const bufferSize = ctx.sampleRate * 1.5;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                const noise = ctx.createBufferSource();
+                noise.buffer = noiseBuffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 1500;
+                const g = ctx.createGain();
+                g.gain.setValueAtTime(0, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.1);
+                g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+                noise.connect(filter);
+                filter.connect(g);
+                g.connect(masterGain);
+                noise.start(); noise.stop(ctx.currentTime + 1.5);
+            }
+        }
+
+        function editTimer() {
+            if (state.isRunning) toggleTimer();
+            document.getElementById('timer-container').classList.add('hidden');
+            document.getElementById('edit-mode').classList.remove('hidden');
+            const m = Math.floor(state.time / 60);
+            const s = state.time % 60;
+            document.getElementById('manual-timer-input').value = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('manual-timer-input').focus();
+        }
+
+        function saveManualTimer() {
+            const val = document.getElementById('manual-timer-input').value;
+            const parts = val.split(':');
+            if (parts.length === 2) {
+                const mins = parseInt(parts[0]) || 0;
+                const secs = parseInt(parts[1]) || 0;
+                state.time = (mins * 60) + secs;
+                cancelEdit();
+                updateDisplay();
+            }
+        }
+
+        function cancelEdit() {
+            document.getElementById('timer-container').classList.remove('hidden');
+            document.getElementById('edit-mode').classList.add('hidden');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(document.activeElement.tagName === 'INPUT') {
+                if(e.code === 'Enter') saveManualTimer();
+                return;
+            }
+            if(e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+            if(e.code === 'KeyR') resetShotClock();
+            if(e.code === 'Backspace') resetTimer();
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
